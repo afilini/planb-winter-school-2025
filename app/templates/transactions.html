@@ -33,23 +33,23 @@
                 <tbody>
                     {% for tx in transactions %}
                     <tr>
-                        <td>{{ tx.date }}</td>
+                        <td>{{ tx.confirmation_time }}</td>
                         <td>
-                            <span class="text-muted">{{ tx.txid[:8] }}...</span>
+                            <span class="text-muted">{{ tx.txid[:32] }}...</span>
                             <button class="btn btn-link btn-sm p-0 ms-2" data-bs-toggle="tooltip" title="Copy" onclick="navigator.clipboard.writeText('{{ tx.txid }}')">
                                 📋
                             </button>
                         </td>
                         <td>
-                            <span class="badge {% if tx.amount > 0 %}bg-success{% else %}bg-danger{% endif %}">
-                                {% if tx.amount > 0 %}Received{% else %}Sent{% endif %}
+                            <span class="badge {% if tx.received > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if (tx.received - tx.sent) > 0 %}Received{% else %}Sent{% endif %}
                             </span>
                         </td>
-                        <td class="{% if tx.amount > 0 %}text-success{% else %}text-danger{% endif %}">
-                            {{ tx.amount }} BTC
+                        <td class="{% if tx.received > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ (tx.received - tx.sent) / 1e8 }} BTC
                         </td>
                         <td>
-                            <span class="badge bg-success">Confirmed</span>
+                            {% if tx.confirmation_time %}<span class="badge bg-success">Confirmed</span>{% endif %}
                         </td>
                         <td>
                             <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#txModal{{ loop.index }}">
@@ -73,12 +73,12 @@
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-md-4 text-muted">Date:</div>
-                                        <div class="col-md-8">{{ tx.date }}</div>
+                                        <div class="col-md-8">{{ tx.confirmation_time }}</div>
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-md-4 text-muted">Amount:</div>
-                                        <div class="col-md-8 {% if tx.amount > 0 %}text-success{% else %}text-danger{% endif %}">
-                                            {{ tx.amount }} BTC
+                                        <div class="col-md-8 {% if tx.received > 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {{ (tx.received - tx.sent) / 1e8 }} BTC
                                         </div>
                                     </div>
                                     <div class="row mb-3">
@@ -88,10 +88,6 @@
                                     <div class="row mb-3">
                                         <div class="col-md-4 text-muted">Confirmations:</div>
                                         <div class="col-md-8">{{ tx.confirmations }}</div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-md-4 text-muted">Block Height:</div>
-                                        <div class="col-md-8">{{ tx.block_height }}</div>
                                     </div>
                                 </div>
                                 <div class="modal-footer">

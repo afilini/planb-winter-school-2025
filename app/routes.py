@@ -40,19 +40,44 @@ def dashboard():
 def transactions():
     # Placeholder for transaction data
     transactions = []  # We'll implement the logic later
-    return render_template('transactions.html', transactions=transactions)
+    return render_template('transactions.html', transactions=wallet.list_transactions(include_raw=True))
 
 @app.route('/send', methods=['GET', 'POST'])
 def send():
     if request.method == 'POST':
-        # We'll implement the sending logic later
+        # Get form data
+        recipient_address = request.form.get('recipient')
+        amount = request.form.get('amount')
+
+        # Basic validation
+        if not recipient_address or not amount:
+            flash('Please fill in all fields', 'error')
+            return render_template('send.html')
+            
+        try:
+            amount = int(float(amount) * 1e8)
+        except ValueError:
+            flash('Invalid amount', 'error')
+            return render_template('send.html')
+        
+        addr = bdk.Address(recipient_address, network=bdk.Network.SIGNET)
+        builder = bdk.TxBuilder().add_recipient(addr.script_pubkey(), amount)
+
+        psbt = builder.finish(wallet).psbt
+        wallet.sign(psbt, None)
+        blockchain.broadcast(psbt.extract_tx())
+
+        wallet.sync(blockchain, None)
+
+        # We'll implement the actual sending logic later
         flash('Transaction sent successfully!', 'success')
-        return redirect(url_for('transactions'))
+        return redirect(url_for('dashboard'))
+
     return render_template('send.html')
 
 @app.route('/receive')
 def receive():
-    return render_template('receive.html', address=WALLET_ADDRESS)
+    return render_template('receive.html', address=wallet.get_address(bdk.AddressIndex.LAST_UNUSED()).address.as_string())
 
 @app.route('/refresh', methods=['POST'])
 def refresh_wallet():
