@@ -2,10 +2,6 @@ from flask import render_template, request, flash, redirect, url_for
 from app import app
 
 import bdkpython as bdk
-import threading
-import time
-
-SIGNET_ESPLORA_URL = "http://signet.bitcoindevkit.net"
 
 descriptor = bdk.Descriptor(app.config["WALLET_DESCRIPTOR"], bdk.Network.SIGNET)
 sqlite_config = bdk.SqliteDbConfiguration(path=app.config["DATABASE_PATH"])
@@ -14,8 +10,8 @@ blockchain_config = bdk.BlockchainConfig.ESPLORA(
     bdk.EsploraConfig(
         base_url = "http://mutinynet.com/api",
         proxy = None,
-        concurrency = None,
-        stop_gap = 100,
+        concurrency = 8,
+        stop_gap = 10,
         timeout = None,
     )
 )
@@ -27,15 +23,6 @@ wallet = bdk.Wallet(
     network=bdk.Network.SIGNET,
     database_config=db_config,
 )
-
-class BackgroundTasks(threading.Thread):
-    def run(self,*args,**kwargs):
-        while True:
-            wallet.sync(blockchain, None)
-            time.sleep(10)
-
-# t = BackgroundTasks()
-# t.start()
 
 # For demo purposes - in production you'd want to properly manage keys
 WALLET_ADDRESS = "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx"  # Example testnet address
@@ -70,6 +57,7 @@ def refresh_wallet():
     next_page = request.form.get('next', '/')
     
     try:
+        wallet.sync(blockchain, None)
         # Refresh wallet logic will go here
         # For now just a placeholder
         flash('Wallet refreshed successfully', 'success')
