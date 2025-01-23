@@ -22,6 +22,9 @@
           ];
           
           CURSOR_PATH = "${cursor-arm.packages.${system}.cursor.linux.arm64-appimage}";
+          shellHook = ''
+            source venv/bin/activate
+          '';
         };
       }
     );

@@ -1,6 +1,5 @@
 from flask import render_template, request, flash, redirect, url_for
 from app import app
-import requests
 
 # For demo purposes - in production you'd want to properly manage keys
 WALLET_ADDRESS = "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx"  # Example testnet address
