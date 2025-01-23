@@ -1,6 +1,42 @@
 from flask import render_template, request, flash, redirect, url_for
 from app import app
 
+import bdkpython as bdk
+import threading
+import time
+
+SIGNET_ESPLORA_URL = "http://signet.bitcoindevkit.net"
+
+descriptor = bdk.Descriptor(app.config["WALLET_DESCRIPTOR"], bdk.Network.SIGNET)
+sqlite_config = bdk.SqliteDbConfiguration(path=app.config["DATABASE_PATH"])
+db_config = bdk.DatabaseConfig.SQLITE(sqlite_config)
+blockchain_config = bdk.BlockchainConfig.ESPLORA(
+    bdk.EsploraConfig(
+        base_url = "http://mutinynet.com/api",
+        proxy = None,
+        concurrency = None,
+        stop_gap = 100,
+        timeout = None,
+    )
+)
+blockchain = bdk.Blockchain(blockchain_config)
+
+wallet = bdk.Wallet(
+    descriptor=descriptor,
+    change_descriptor=None,
+    network=bdk.Network.SIGNET,
+    database_config=db_config,
+)
+
+class BackgroundTasks(threading.Thread):
+    def run(self,*args,**kwargs):
+        while True:
+            wallet.sync(blockchain, None)
+            time.sleep(10)
+
+# t = BackgroundTasks()
+# t.start()
+
 # For demo purposes - in production you'd want to properly manage keys
 WALLET_ADDRESS = "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx"  # Example testnet address
 
@@ -8,8 +44,7 @@ WALLET_ADDRESS = "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx"  # Example testnet
 @app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html', 
-                         balance=0.1,
-                         address=WALLET_ADDRESS,
+                         balance=wallet.get_balance().total / 1e8,
                          transactions=[])
 
 @app.route('/transactions')
