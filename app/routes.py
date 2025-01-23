@@ -64,3 +64,16 @@ def send():
 @app.route('/receive')
 def receive():
     return render_template('receive.html', address=WALLET_ADDRESS)
+
+@app.route('/refresh', methods=['POST'])
+def refresh_wallet():
+    next_page = request.form.get('next', '/')
+    
+    try:
+        # Refresh wallet logic will go here
+        # For now just a placeholder
+        flash('Wallet refreshed successfully', 'success')
+    except Exception as e:
+        flash(f'Error refreshing wallet: {str(e)}', 'error')
+    
+    return redirect(next_page)
