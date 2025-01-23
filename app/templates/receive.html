@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Receive Bitcoin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Receive Bitcoin</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <!-- Local QR code generation -->
+                    <div class="bg-light p-4 mb-3 d-inline-block">
+                        <div id="qrcode"></div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Your Bitcoin Address</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="bitcoin-address" value="{{ address }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ address }}')">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Request Amount (optional)</label>
+                    <div class="input-group mb-3">
+                        <input type="number" class="form-control" id="request-amount" step="0.00000001" 
+                               placeholder="0.00000000" oninput="updateQR()">
+                        <span class="input-group-text">BTC</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add QR code library -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+<script>
+    function generateQR(text) {
+        const qr = qrcode(0, 'M');
+        qr.addData(text);
+        qr.make();
+        
+        document.getElementById('qrcode').innerHTML = qr.createImgTag(5);
+    }
+
+    function updateQR() {
+        const address = document.getElementById('bitcoin-address').value;
+        const amount = document.getElementById('request-amount').value;
+        
+        let qrText = address;
+        if (amount) {
+            // Create a Bitcoin URI with amount
+            qrText = `bitcoin:${address}?amount=${amount}`;
+        }
+        
+        generateQR(qrText);
+    }
+
+    // Generate initial QR code on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateQR();
+    });
+</script>
+{% endblock %}
