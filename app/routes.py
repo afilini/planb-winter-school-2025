@@ -3,12 +3,14 @@ from app import app
 
 import bdkpython as bdk
 
-descriptor = bdk.Descriptor(app.config["WALLET_DESCRIPTOR"], bdk.Network.SIGNET)
+mnemonic = bdk.Mnemonic.from_string(app.config["WALLET_MNEMONIC"])
+key = bdk.DescriptorSecretKey(bdk.Network.SIGNET, mnemonic, None)
+descriptor = bdk.Descriptor.new_bip84(key, bdk.KeychainKind.EXTERNAL, bdk.Network.SIGNET)
 sqlite_config = bdk.SqliteDbConfiguration(path=app.config["DATABASE_PATH"])
 db_config = bdk.DatabaseConfig.SQLITE(sqlite_config)
 blockchain_config = bdk.BlockchainConfig.ESPLORA(
     bdk.EsploraConfig(
-        base_url = "http://mutinynet.com/api",
+        base_url = "https://mutinynet.com/api",
         proxy = None,
         concurrency = 8,
         stop_gap = 10,
